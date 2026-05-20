@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Phân Tích Giấc Ngủ & Lời Khuyên Sức Khỏe | Ẩn Danh</title>
+    <!-- Chart.js cho biểu đồ mức độ ảnh hưởng -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- Font Awesome 6 (miễn phí) cho icon dễ thương -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+        }
+        body {
+            background: linear-gradient(145deg, #e0eafc 0%, #cfdef3 100%);
+            padding: 2rem 1rem;
+        }
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+        /* header */
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .header h1 {
+            font-size: 2rem;
+            color: #1e2f4e;
+            text-shadow: 2px 2px 6px rgba(0,0,0,0.05);
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(255,255,240,0.7);
+            backdrop-filter: blur(4px);
+            padding: 0.6rem 1.8rem;
+            border-radius: 60px;
+            box-shadow: 0 8px 14px rgba(0,0,0,0.1);
+        }
+        .sub {
+            color: #2c3e66;
+            margin-top: 10px;
+            font-weight: 500;
+        }
+        /* grid chính: bên trái form, bên phải biểu đồ + database */
+        .two-columns {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.8rem;
+        }
+        .form-card {
+            flex: 1.2;
+            min-width: 280px;
+            background: white;
+            border-radius: 2rem;
+            padding: 1.6rem 1.8rem;
+            box-shadow: 0 20px 35px rgba(0, 0, 0, 0.1);
+            transition: 0.2s;
+        }
+        .insight-card {
+            flex: 1;
+            min-width: 280px;
+            background: #ffffffdd;
+            backdrop-filter: blur(2px);
+            border-radius: 2rem;
+            padding: 1.4rem;
+            background: white;
+            box-shadow: 0 20px 30px rgba(0,0,0,0.08);
+        }
+        /* các mục đề mục phân tích ảnh hưởng */
+        .influence-box {
+            background: #f8faff;
+            border-radius: 1.5rem;
+            padding: 1rem;
+            margin-top: 1.5rem;
+            border: 1px solid #cddaf5;
+        }
+        .influence-title {
+            font-weight: 700;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #1f3a6b;
+            border-left: 5px solid #3b82f6;
+            padding-left: 12px;
+        }
+        .influence-list {
+            list-style: none;
+        }
+        .influence-list li {
+            background: #eef3ff;
+            margin: 10px 0;
+            padding: 10px 14px;
+            border-radius: 40px;
+            display: flex;
+            justify-content: space-between;
+            font-weight: 500;
+        }
+        .badge-impact {
+            background: #1e3a8a;
+            color: white;
+            border-radius: 40px;
+            padding: 4px 12px;
+            font-size: 0.8rem;
+        }
+        /* Form nhập */
+        label {
+            font-weight: 600;
+            display: block;
+            margin-top: 1rem;
+            margin-bottom: 0.4rem;
+            color: #1e293b;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 28px;
+            border: 1.5px solid #cbd5e1;
+            background: #fefefe;
+            font-size: 1rem;
+            transition: 0.2s;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
+        }
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 40px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 1.5rem;
+            width: 100%;
+            transition: all 0.2s;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+        button:hover {
+            background: #1e40af;
+            transform: translateY(-2px);
+        }
+        .advice-box {
+            margin-top: 1.4rem;
+            background: #d9effa;
+            border-radius: 1.5rem;
+            padding: 1rem;
+            border-left: 6px solid #0f67b3;
+        }
+        .advice-box h3 {
+            display: flex;
+            gap: 8px;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+        .feedback-text {
+            font-size: 1rem;
+            line-height: 1.4;
+            font-weight: 500;
+            color: #022c4a;
+        }
+        .general-tips {
+            background: #fef9e3;
+            border-radius: 1.5rem;
+            margin-top: 1rem;
+            padding: 1rem;
+        }
+        .general-tips h4 {
+            color: #b45309;
+        }
+        hr {
+            margin: 1rem 0;
+        }
+        canvas {
+            max-height: 260px;
+            width: 100% !important;
+        }
+        .db-stats {
+            margin-top: 1.4rem;
+            background: #f1f5f9;
+            border-radius: 1.2rem;
+            padding: 1rem;
+        }
+        .small-note {
+            font-size: 0.75rem;
+            color: #475569;
+            text-align: center;
+            margin-top: 12px;
+        }
+        .reset-btn {
+            background: #64748b;
+            margin-top: 0.6rem;
+        }
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        i {
+            margin-right: 6px;
+        }
+        @media (max-width: 780px) {
+            .two-columns {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1><i class="fas fa-moon"></i> Phân Tích Giấc Ngủ & Ảnh Hưởng <i class="fas fa-chart-line"></i></h1>
+        <div class="sub">Đánh giá mức độ ảnh hưởng • Dữ liệu ẩn danh • Lời khuyên sức khỏe thông minh</div>
+    </div>
+
+    <div class="two-columns">
+        <!-- Cột TRÁI: Form thu thập ẩn danh + lời khuyên cá nhân -->
+        <div class="form-card">
+            <h2><i class="fas fa-edit"></i> Thông tin giấc ngủ (ẩn danh)</h2>
+            <p style="margin-bottom: 6px; color:#2c3e66;">✏️ Dữ liệu của bạn được lưu trữ ẩn danh để cập nhật cơ sở dữ liệu & chuẩn hóa bảng phân tích.</p>
+            
+            <label><i class="fas fa-hourglass-half"></i> 1. Số giờ ngủ trung bình mỗi đêm:</label>
+            <input type="number" id="sleepHours" step="0.1" min="2" max="14" value="7.0" placeholder="VD: 7.5 giờ">
+            
+            <label><i class="fas fa-clock"></i> 2. Giờ đi ngủ thường xuyên (khung giờ):</label>
+            <select id="bedtimeRange">
+                <option value="before22">Trước 22:00 (sớm)</option>
+                <option value="22-23">22:00 - 23:00</option>
+                <option value="23-00">23:00 - 00:00</option>
+                <option value="after00">Sau 00:00 (khuya)</option>
+            </select>
+
+            <label><i class="fas fa-calendar-week"></i> 3. Độ tuổi (để tư vấn thời gian ngủ phù hợp):</label>
+            <select id="ageGroup">
+                <option value="child">Trẻ em (6-13 tuổi)</option>
+                <option value="teen">Thanh thiếu niên (14-17 tuổi)</option>
+                <option value="adult">Người trưởng thành (18-64 tuổi)</option>
+                <option value="senior">Người cao tuổi (65+ tuổi)</option>
+            </select>
+
+            <label><i class="fas fa-brain"></i> 4. Cảm nhận chất lượng giấc ngủ:</label>
+            <select id="sleepQuality">
+                <option value="poor">Kém – hay tỉnh giấc, mệt mỏi</option>
+                <option value="fair">Trung bình – ngủ được nhưng chưa sâu</option>
+                <option value="good">Tốt – ngủ ngon, tỉnh táo</option>
+                <option value="excellent">Rất tốt – sảng khoái</option>
+            </select>
+
+            <button id="submitBtn"><i class="fas fa-chart-simple"></i> Phân tích & Gửi ẩn danh</button>
+            
+            <!-- Khu vực lời khuyên trực tiếp -->
+            <div class="advice-box" id="adviceBox">
+                <h3><i class="fas fa-comment-dots"></i> 🩺 Lời khuyên dành riêng cho bạn</h3>
+                <div class="feedback-text" id="directFeedback">Hãy nhập thông tin và nhấn "Phân tích" để nhận lời khuyên sức khỏe cá nhân hóa.</div>
+            </div>
+
+            <!-- Lời khuyên chung: cách ngủ ngon, thời gian phù hợp theo lứa tuổi -->
+            <div class="general-tips" id="generalTips">
+                <h4><i class="fas fa-lightbulb"></i> 💤 Lời khuyên chung: Ngủ ngon & thời gian phù hợp</h4>
+                <div id="commonAdvice">Đang tải gợi ý...</div>
+            </div>
+        </div>
+
+        <!-- Cột PHẢI: Biểu đồ mức độ ảnh hưởng (theo đề mục 1,2,3,...) + Database thống kê -->
+        <div class="insight-card">
+            <div class="influence-box">
+                <div class="influence-title"><i class="fas fa-chart-pie"></i> 📊 Mức độ ảnh hưởng đến sức khỏe</div>
+                <ul class="influence-list" id="influenceList">
+                    <li>1. Thiếu ngủ kinh niên <span class="badge-impact" id="impact1">Đang tính</span></li>
+                    <li>2. Giấc ngủ không đều <span class="badge-impact" id="impact2">Đang tính</span></li>
+                    <li>3. Chất lượng ngủ kém <span class="badge-impact" id="impact3">Đang tính</span></li>
+                    <li>4. Khuya giờ sinh học <span class="badge-impact" id="impact4">Đang tính</span></li>
+                    <li>5. Rối loạn nhịp ngủ <span class="badge-impact" id="impact5">Đang tính</span></li>
+                </ul>
+                <canvas id="impactChart" width="400" height="200" style="max-height:210px; margin-top:8px"></canvas>
+                <div class="small-note"><i class="fas fa-database"></i> Mức độ ảnh hưởng được cập nhật dựa trên dữ liệu ẩn danh gần đây (từ database nội bộ)</div>
+            </div>
+
+            <!-- Database thống kê ẩn danh tổng hợp (update liên tục) -->
+            <div class="db-stats">
+                <h4><i class="fas fa-table-list"></i> 📋 Database ẩn danh & Chuẩn hóa bảng ảnh hưởng</h4>
+                <div id="statsSummary" style="font-size:0.9rem; margin-top:6px;">
+                    Tổng số bản ghi: 0<br>
+                    Giờ ngủ TB: -- <br>
+                    Chất lượng TB (điểm): -- 
+                </div>
+                <div style="margin-top: 12px;">
+                    <button id="resetDataBtn" class="reset-btn" style="width:auto; padding:6px 14px; background:#94a3b8;"><i class="fas fa-trash-alt"></i> Đặt lại database (demo)</button>
+                </div>
+                <div class="small-note" style="margin-top:12px"><i class="fas fa-lock"></i> Tất cả thông tin hoàn toàn ẩn danh, chỉ dùng để cải thiện bảng phân tích.</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ---------- Ẩn danh database lưu trên localStorage (mô phỏng database backend cập nhật) ----------
+    let anonymousRecords = [];     // mỗi record: { sleepHours, bedtimeRange, ageGroup, sleepQuality, timestamp }
+    // Hàm tải dữ liệu từ localStorage
+    function loadDatabase() {
+        const stored = localStorage.getItem("sleep_anon_db");
+        if(stored) {
+            try {
+                anonymousRecords = JSON.parse(stored);
+            } catch(e) { anonymousRecords = []; }
+        } else {
+            // Tạo dữ liệu mẫu để hiển thị biểu đồ sinh động hơn, vẫn ẩn danh
+            anonymousRecords = [
+                { sleepHours: 5.2, bedtimeRange: "after00", ageGroup: "adult", sleepQuality: "poor" },
+                { sleepHours: 6.5, bedtimeRange: "23-00", ageGroup: "adult", sleepQuality: "fair" },
+                { sleepHours: 7.8, bedtimeRange: "22-23", ageGroup: "teen", sleepQuality: "good" },
+                { sleepHours: 8.0, bedtimeRange: "before22", ageGroup: "child", sleepQuality: "excellent" },
+                { sleepHours: 6.0, bedtimeRange: "after00", ageGroup: "adult", sleepQuality: "fair" },
+                { sleepHours: 7.2, bedtimeRange: "22-23", ageGroup: "senior", sleepQuality: "good" }
+            ];
+            saveDatabase();
+        }
+    }
+    function saveDatabase() {
+        localStorage.setItem("sleep_anon_db", JSON.stringify(anonymousRecords));
+    }
+
+    // Hàm chuẩn hóa mức độ ảnh hưởng dựa trên toàn bộ database + thông tin người dùng hiện tại (nếu submit)
+    // Trả về object 5 chỉ số ảnh hưởng (điểm từ 0-100) tương ứng với các đề mục: 
+    // [thiếu ngủ, không đều, chất lượng kém, khuya giờ sinh học, rối loạn nhịp]
+    function computeInfluenceLevels(currentRecord = null) {
+        // Nếu có currentRecord thì dùng tạm để phân tích ảnh hưởng riêng lẻ, nhưng ưu tiên tổng database
+        let dataSet = [...anonymousRecords];
+        if (currentRecord) {
+            // thêm record tạm để phân tích ảnh hưởng mang tính thời gian thực (nhưng không lưu vào db cho đến khi submit)
+            dataSet.push(currentRecord);
+        }
+        if(dataSet.length === 0) return [20,20,20,20,20];
+        
+        // tính các chỉ số thống kê:
+        let avgSleep = dataSet.reduce((s,r)=> s + r.sleepHours,0)/dataSet.length;
+        let poorQualityRatio = dataSet.filter(r=> r.sleepQuality === 'poor' || r.sleepQuality === 'fair').length / dataSet.length;
+        let lateBedRatio = dataSet.filter(r=> r.bedtimeRange === 'after00' || r.bedtimeRange === '23-00').length / dataSet.length;
+        let irregularEstimate = 0.3 + (Math.abs(avgSleep - 7.5)/5);   // dựa độ lệch giờ ngủ TB từ 7-8h
+        let sleepDeficitImpact = 0;
+        if(avgSleep < 6) sleepDeficitImpact = 0.85;
+        else if(avgSleep < 7) sleepDeficitImpact = 0.55;
+        else if(avgSleep < 8) sleepDeficitImpact = 0.25;
+        else sleepDeficitImpact = 0.1;
+        
+        // Tỉ lệ người dùng có chất lượng giấc ngủ kém ảnh hưởng đề mục 3
+        let qualityImpact = poorQualityRatio * 0.9;
+        // Đề mục 4: khuya giờ sinh học
+        let lateImpact = lateBedRatio * 0.85;
+        // Đề mục 5: rối loạn nhịp (kết hợp giờ đi ngủ không đều + dữ liệu ước lượng)
+        let rhythmImpact = (irregularEstimate * 0.7 + (lateBedRatio*0.3));
+        
+        // chuẩn hóa thành thang điểm 0-100
+        let impact1 = Math.min(100, Math.round(sleepDeficitImpact * 100));
+        let impact2 = Math.min(100, Math.round((Math.abs(avgSleep - 7.2)/3.5)*100));
+        let impact3 = Math.min(100, Math.round(qualityImpact * 100));
+        let impact4 = Math.min(100, Math.round(lateImpact * 100));
+        let impact5 = Math.min(100, Math.round(rhythmImpact * 100));
+        return [impact1, impact2, impact3, impact4, impact5];
+    }
+    
+    // Cập nhật giao diện bảng ảnh hưởng + biểu đồ chart.js
+    let chart;
+    function updateInfluenceUI(impacts) {
+        document.getElementById("impact1").innerText = impacts[0] + " /100";
+        document.getElementById("impact2").innerText = impacts[1] + " /100";
+        document.getElementById("impact3").innerText = impacts[2] + " /100";
+        document.getElementById("impact4").innerText = impacts[3] + " /100";
+        document.getElementById("impact5").innerText = impacts[4] + " /100";
+        // vẽ biểu đồ
+        const ctx = document.getElementById('impactChart').getContext('2d');
+        if(chart) chart.destroy();
+        chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Thiếu ngủ', 'Ngủ không đều', 'Chất lượng kém', 'Giờ khuya', 'Rối loạn nhịp'],
+                datasets: [{
+                    label: 'Mức độ ảnh hưởng (%)',
+                    data: impacts,
+                    backgroundColor: ['#3b82f6', '#60a5fa', '#f97316', '#ef4444', '#8b5cf6'],
+                    borderRadius: 12,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: { legend: { position: 'top' } }
+            }
+        });
+    }
+    
+    // Cập nhật thống kê database (số lượng, giờ ngủ TB, chất lượng điểm)
+    function updateDatabaseStats() {
+        let total = anonymousRecords.length;
+        let avgHours = 0;
+        let qualityScoreAvg = 0;
+        if(total>0){
+            avgHours = anonymousRecords.reduce((a,b)=> a+b.sleepHours,0)/total;
+            let scoreMap = {poor:20, fair:50, good:75, excellent:95};
+            let sumQual = anonymousRecords.reduce((acc,rec)=> acc + scoreMap[rec.sleepQuality],0);
+            qualityScoreAvg = (sumQual/total).toFixed(1);
+        }
+        document.getElementById("statsSummary").innerHTML = `
+            <i class="fas fa-users"></i> Tổng số bản ghi: ${total}<br>
+            <i class="fas fa-bed"></i> Giờ ngủ TB: ${avgHours.toFixed(1)} giờ/đêm<br>
+            <i class="fas fa-star"></i> Chất lượng TB (điểm): ${qualityScoreAvg}/100
+        `;
+        // Cập nhật bảng phân tích dựa trên database hiện tại
+        let globalImpacts = computeInfluenceLevels();
+        updateInfluenceUI(globalImpacts);
+    }
+    
+    // Lời khuyên chung: thời gian ngủ phù hợp theo lứa tuổi + cách ngủ ngon
+    function renderGeneralAdvice(ageGroup = null) {
+        let adviceCommon = "";
+        let sleepDurationRec = "";
+        switch(ageGroup) {
+            case 'child': sleepDurationRec = "Trẻ em 6-13 tuổi cần ngủ 9-11 giờ mỗi đêm."; break;
+            case 'teen': sleepDurationRec = "Thanh thiếu niên 14-17 tuổi cần 8-10 giờ ngủ."; break;
+            case 'adult': sleepDurationRec = "Người lớn 18-64 tuổi: ngủ 7-9 giờ là lý tưởng."; break;
+            case 'senior': sleepDurationRec = "Người cao tuổi (65+): 7-8 giờ, nhưng chất lượng quan trọng."; break;
+            default: sleepDurationRec = "Mỗi độ tuổi có nhu cầu ngủ khác nhau: trẻ em 9-11h, thanh thiếu niên 8-10h, người lớn 7-9h, cao tuổi 7-8h.";
+        }
+        adviceCommon = `<i class="fas fa-clock"></i> ${sleepDurationRec}<br>
+        <i class="fas fa-lightbulb"></i> <strong>Cách ngủ ngon:</strong> Giờ cố định, tắt thiết bị điện tử 30p trước khi ngủ, phòng tối & mát, tránh cafein buổi tối. <br>
+        <i class="fas fa-moon"></i> Thời gian ngủ phù hợp giúp cải thiện miễn dịch, trí nhớ và giảm căng thẳng.`;
+        document.getElementById("commonAdvice").innerHTML = adviceCommon;
+    }
+    
+    // Lời khuyên trực tiếp dựa trên thông số người dùng gửi lên
+    function getPersonalAdvice(record) {
+        let hours = record.sleepHours;
+        let bedtime = record.bedtimeRange;
+        let quality = record.sleepQuality;
+        let age = record.ageGroup;
+        let messages = [];
+        
+        // Khuyến nghị dựa trên giờ ngủ
+        let recommendSleepMin = 0;
+        if(age === 'child') recommendSleepMin = 9;
+        else if(age === 'teen') recommendSleepMin = 8;
+        else if(age === 'adult') recommendSleepMin = 7;
+        else recommendSleepMin = 7;
+        
+        if(hours < recommendSleepMin) {
+            messages.push(`🟠 Bạn nên ngủ nhiều hơn, tối thiểu ${recommendSleepMin} giờ mỗi đêm để phục hồi sức khỏe.`);
+        } else if(hours >= recommendSleepMin+1) {
+            messages.push(`🟢 Số giờ ngủ của bạn khá tốt! Hãy duy trì thói quen này.`);
+        } else {
+            messages.push(`🟡 Số giờ ngủ ở mức cơ bản, hãy cố gắng ngủ sớm hơn 15-30 phút.`);
+        }
+        
+        if(bedtime === "after00") {
+            messages.push("🌙 Bạn nên ngủ sớm hơn (trước 23h) để đồng hồ sinh học hoạt động tối ưu, giảm nguy cơ tim mạch.");
+        } else if(bedtime === "23-00") {
+            messages.push("✨ Cố gắng ngủ trước 23h để tận hưởng giấc ngủ sâu hơn.");
+        } else {
+            messages.push("👍 Khung giờ ngủ của bạn rất lý tưởng, duy trì nhé!");
+        }
+        
+        if(quality === "poor") {
+            messages.push("⚠️ Chất lượng ngủ kém ảnh hưởng đến miễn dịch. Hãy thử thiền nhẹ, tắt điện thoại sớm.");
+        } else if(quality === "fair") {
+            messages.push("📈 Bạn có thể cải thiện chất lượng ngủ bằng cách thư giãn và tối ưu không gian phòng ngủ.");
+        } else {
+            messages.push("💪 Giấc ngủ chất lượng tốt! Hãy duy trì và chia sẻ thói quen lành mạnh.");
+        }
+        // lời khuyên liên quan đến lứa tuổi
+        if(age === 'senior') messages.push("🧓 Với người cao tuổi, ngủ trưa 20-30 phút có thể bổ ích, tránh ngủ quá nhiều ban ngày.");
+        if(age === 'child') messages.push("🧸 Trẻ em cần giờ ngủ đều đặn, hạn chế game/điện thoại trước ngủ.");
+        
+        return messages.join(" ");
+    }
+    
+    // Hàm xử lý khi người dùng submit (phân tích + cập nhật database)
+    function handleSubmit() {
+        // Lấy dữ liệu từ form
+        let sleepHoursVal = parseFloat(document.getElementById("sleepHours").value);
+        if(isNaN(sleepHoursVal)) sleepHoursVal = 7;
+        const bedtimeRange = document.getElementById("bedtimeRange").value;
+        const ageGroup = document.getElementById("ageGroup").value;
+        const sleepQuality = document.getElementById("sleepQuality").value;
+        
+        const newRecord = {
+            sleepHours: sleepHoursVal,
+            bedtimeRange: bedtimeRange,
+            ageGroup: ageGroup,
+            sleepQuality: sleepQuality,
+            timestamp: Date.now()
+        };
+        
+        // Lưu ẩn danh vào database
+        anonymousRecords.push(newRecord);
+        saveDatabase();
+        
+        // Cập nhật lại thống kê database & biểu đồ ảnh hưởng
+        updateDatabaseStats();
+        
+        // Cập nhật lời khuyên chung dựa trên lứa tuổi hiện tại (tùy chọn hiển thị thêm)
+        renderGeneralAdvice(ageGroup);
+        
+        // Lời khuyên trực tiếp đến sức khỏe cá nhân hóa
+        const personalMsg = getPersonalAdvice(newRecord);
+        document.getElementById("directFeedback").innerHTML = `<i class="fas fa-heartbeat"></i> ${personalMsg}`;
+        
+        // Cập nhật bảng mức độ ảnh hưởng một lần nữa (có thể gọi computeInfluenceLevels với record mới để xem tác động tức thì)
+        // Nhưng updateDatabaseStats đã gọi compute dựa trên toàn db, rất trực quan.
+        // thêm thông báo nhỏ
+        const adviceBox = document.getElementById("adviceBox");
+        adviceBox.style.transition = "0.2s";
+        adviceBox.style.backgroundColor = "#e6f2fe";
+        setTimeout(()=>{ adviceBox.style.backgroundColor = "#d9effa"; }, 300);
+        
+        // hiển thị thêm thông báo đã cập nhật database
+        let toastMsg = document.createElement("div");
+        toastMsg.innerText = "✅ Đã lưu ẩn danh & cập nhật phân tích ảnh hưởng!";
+        toastMsg.style.position = "fixed";
+        toastMsg.style.bottom = "20px";
+        toastMsg.style.right = "20px";
+        toastMsg.style.backgroundColor = "#1f3a6b";
+        toastMsg.style.color = "white";
+        toastMsg.style.padding = "8px 16px";
+        toastMsg.style.borderRadius = "40px";
+        toastMsg.style.fontSize = "0.8rem";
+        toastMsg.style.zIndex = "999";
+        document.body.appendChild(toastMsg);
+        setTimeout(()=> toastMsg.remove(), 2000);
+    }
+    
+    // reset database (xóa toàn bộ)
+    function resetDatabase() {
+        if(confirm("⚠️ Xóa toàn bộ dữ liệu ẩn danh? Bảng phân tích sẽ khởi tạo lại mẫu.")) {
+            anonymousRecords = [];
+            // thêm vài mẫu cơ bản để biểu đồ không trống
+            anonymousRecords.push({ sleepHours: 7.2, bedtimeRange: "22-23", ageGroup: "adult", sleepQuality: "good" });
+            anonymousRecords.push({ sleepHours: 6.2, bedtimeRange: "23-00", ageGroup: "adult", sleepQuality: "fair" });
+            saveDatabase();
+            updateDatabaseStats();
+            document.getElementById("directFeedback").innerHTML = "Đã reset dữ liệu. Hãy nhập lại thông tin để nhận lời khuyên mới.";
+            renderGeneralAdvice('adult');
+            // reset lời khuyên cá nhân
+        }
+    }
+    
+    // khởi tạo trang
+    function init() {
+        loadDatabase();
+        updateDatabaseStats();
+        renderGeneralAdvice('adult'); // mặc định hiển thị chung
+        document.getElementById("submitBtn").addEventListener("click", handleSubmit);
+        document.getElementById("resetDataBtn").addEventListener("click", resetDatabase);
+        // Nếu có sẵn dữ liệu mẫu, cập nhật gợi ý mặc định?
+        // thêm tính năng ẩn danh xong.
+    }
+    
+    init();
+</script>
+</body>
+</html>
